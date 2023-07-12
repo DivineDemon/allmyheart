@@ -29,6 +29,16 @@ export default createStore({
     async addNotificationToken({ commit }, payload) {
       commit("setNotificationToken", payload);
     },
+    async sendNotification({ state }, payload) {
+      await fetch("http://localhost:3000/api/notification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          token: state.notificationToken,
+        },
+        body: JSON.stringify(payload),
+      });
+    },
   },
   plugins: [vuexLocal.plugin],
 });

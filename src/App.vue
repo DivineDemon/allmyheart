@@ -4,12 +4,14 @@
 </template>
 
 <script setup>
-import HomeView from "@/pages/HomeView.vue";
-import NavBar from "./components/NavBar.vue";
-
 import { useStore } from "vuex";
+import { toast } from "vue3-toastify";
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
+
+import "vue3-toastify/dist/index.css";
+import HomeView from "@/pages/HomeView.vue";
+import NavBar from "./components/NavBar.vue";
 
 // Initialize Store
 const store = useStore();
@@ -27,8 +29,8 @@ const firebaseConfig = {
 initializeApp(firebaseConfig);
 
 const messaging = getMessaging();
-onMessage(messaging, (payload) => {
-  console.log("Message received. ", payload);
+onMessage(messaging, () => {
+  toast.info("Message Received!");
 });
 
 getToken(messaging, { vapidKey: process.env.VUE_APP_VAP_ID })
@@ -36,12 +38,20 @@ getToken(messaging, { vapidKey: process.env.VUE_APP_VAP_ID })
     if (currentToken) {
       store.dispatch("addNotificationToken", currentToken);
     } else {
-      console.log(
-        "No registration token available. Request permission to generate one."
-      );
+      Notification.requestPermission()
+        .then((permission) => {
+          if (permission === "granted") {
+            toast.success("Notifications Enabled");
+          } else {
+            toast.warning("Notifications Disabled");
+          }
+        })
+        .catch((error) => {
+          toast.info(`Notification Permission Rejected, ${error.message}`);
+        });
     }
   })
   .catch((err) => {
-    console.log("An error occurred while retrieving token. ", err);
+    toast.info(`Authorization Issue, ${err}`);
   });
 </script>
